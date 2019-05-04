@@ -1,0 +1,28 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: webhook-admission-mutation
+webhooks:
+- name: pods.webhook-admission-mutation
+  clientConfig:
+    service:
+      namespace: webhook-admission-mutation
+      name: webhook-admission-mutation
+      path: /pods
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM5akNDQWQ2Z0F3SUJBZ0lRTkxVc1ljYy9iRmdYQjlyNkNyWEM1ekFOQmdrcWhraUc5dzBCQVFzRkFEQVYKTVJNd0VRWURWUVFERXdwemRtTXRZMkYwTFdOaE1CNFhEVEU1TURVd05ERTVORE14TlZvWERUSTVNRFV3TVRFNQpORE14TlZvd0ZURVRNQkVHQTFVRUF4TUtjM1pqTFdOaGRDMWpZVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFECmdnRVBBRENDQVFvQ2dnRUJBTHFNaGE5V1J3bjZ1V2JWQ2JxZkJ1bEhoZHRPOCs0Mjk5ZnJQQ1lCbFF5VzZEaFYKakdOeU5vMCt2WU1aVW9pSDFudTlaRUtUM0Uwdmx1amhLRG5PcVBTOUFPR053RzZJUkJPY1BwQlZwQnlhcDJjUAp3TTk2TWh5QnVMcWtUUjVoZC81RlZSNWw3NVRpdGNiM3JSM01TeDJtajBNandlNUI4cXRKMURsVjYwajBKNjAxCk0zbHpTcUlRdnFIRTNIQTZxRnp3bjVLVlVEMWNiSStiSWkrdDhBMDFlREN6SmxlVDZyNjZuLzY5N2tNVFBUMUoKOW9IbUp2aEl1RFU2cEd6Z1lkNXgyem5FTDNsWGUxVEV1SERURDZPLzZhb1NNUEJzY2xKd00vU0hZUjA0d3A4WApPbkUzTjkra3g1U3o3cUYyQlViK1lpZE1DdmJTdm5FRDVWKy9SRk1DQXdFQUFhTkNNRUF3RGdZRFZSMFBBUUgvCkJBUURBZ0trTUIwR0ExVWRKUVFXTUJRR0NDc0dBUVVGQndNQkJnZ3JCZ0VGQlFjREFqQVBCZ05WSFJNQkFmOEUKQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUJTZXRTcW5tTE9hcmZhc08vbnNtamhJMVpOajFCRgozY3dGSy9ieG1lcnR4a2ZuWE5vNEFSeklzT2RDQ0l3aGpqeEU2V1c3c2hSQW9yeTFuZC94ZkFlb3VzeUtyd2FJCmN4MFZFQUxqVlAzMkxnYUlQUk90bXo1RUhQTXp3MlBRbHZLZnZJTitweE9KVW9VV0QrRWRPV3VQYVVOWkduNUsKSUN0eUwyZ1NKck15TUpVRitGbzVkZExWS0tWZDM1ajBwa1RlZzRQYlIyS3VLeHdrNTE5T2dITTFsbGtGZzNPdwozd2xIdTR3aFdxcGEraVVITzkrWHkvc0grL3hjNHdGZEpKRVBlN1NQWUVwTFVnRXJZeDRXZk92V1B2S3Y4MURSClRxdnoycWttSlVPSGZ5cWduZ09xOXhPb0hOZTUrRit5NGpEVnZQZmZxSnhSbXdMcmxoOXFhTzM3Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  rules:
+  - operations:
+    - CREATE
+    apiGroups:
+    - "*"
+    apiVersions:
+    - "*"
+    resources:
+    - pods
+  failurePolicy: Fail
+  namespaceSelector:
+    matchExpressions:
+    - key: name
+      operator: NotIn
+      values:
+      - webhook-admission-mutation
