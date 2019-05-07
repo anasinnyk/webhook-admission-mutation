@@ -25,9 +25,53 @@ func mutator(ctx context.Context, obj metav1.Object) (bool, error) {
 		return false, nil
 	}
 
+	fmt.Printf("%v\n", pod.ObjectMeta.Annotations)
 	if pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/skip"] == "true" {
 		return false, nil
 	} else {
+		if pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/sc-100"] == "true" {
+			RunAsUser := int64(100)
+			pod.Spec.Containers[0].SecurityContext.RunAsUser = &RunAsUser
+		}
+
+		if pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/cmd"] == "true" {
+			pod.Spec.Containers[0].Command = []string{"echo", "123"}
+		}
+
+		if pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/init-container"] == "true" {
+			allowPrivilegeEscalation := false
+			securityContext := &corev1.SecurityContext{}
+			if pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/dissable-allow-privilege-escalation"] == "true" {
+				securityContext.AllowPrivilegeEscalation = &allowPrivilegeEscalation
+			}
+			pod.Spec.InitContainers = []corev1.Container{
+				{
+					Name: "ubuntu-init",
+					Image: "ubuntu",
+					Command: []string{"echo", "init"},
+					SecurityContext: securityContext,
+				},
+			}
+		}
+
+		if pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/volume"] == "true" {
+			pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
+				{
+					Name:      "vault-env",
+					MountPath: "/vault/",
+				},
+			}
+
+			pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
+				Name: "vault-env",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{
+						Medium: corev1.StorageMediumMemory,
+					},
+				},
+			})
+		}
+
 		pod.ObjectMeta.Annotations["webhook.k8s.macpaw.io/mutated"] = "true"
 	}
 
@@ -51,9 +95,8 @@ func handlerFor(config mutating.WebhookConfig, mutator mutating.MutatorFunc, log
 }
 
 func main() {
-
+	viper.AutomaticEnv()
 	logger := &log.Std{Debug: viper.GetBool("debug")}
-
 	podHandler := handlerFor(mutating.WebhookConfig{Name: "webhook-admission-mutation", Obj: &corev1.Pod{}}, mutating.MutatorFunc(mutator), logger)
 
 	mux := http.NewServeMux()
@@ -61,10 +104,10 @@ func main() {
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		port = 3000 
+		port = 8443 
 	}
 
-	err = http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
+	err = http.ListenAndServeTLS(fmt.Sprintf(":%d", port), viper.GetString("tls_cert_file"), viper.GetString("tls_private_key_file"), mux)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error serving webhook: %s", err)
 		os.Exit(1)

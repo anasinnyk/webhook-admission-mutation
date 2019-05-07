@@ -33,11 +33,7 @@ spec:
         - name: DEBUG
           value: "true"
         ports:
-        - containerPort: 3000
-        resources:
-          limits:
-            memory: 128M
-            cpu: 300
+        - containerPort: 443
         volumeMounts:
         - mountPath: /var/serving-cert
           name: serving-cert
