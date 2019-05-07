@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: test
+  name: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      annotations:
+        webhook.k8s.macpaw.io/init-container: "true"
+        webhook.k8s.macpaw.io/volume: "true"
+      labels:
+        app: test
+    spec:
+      containers:
+      - image: containous/whoami
+        imagePullPolicy: Always
+        name: whoami
